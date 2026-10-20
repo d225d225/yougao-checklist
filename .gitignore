@@ -1,0 +1,7 @@
+.streamlit/secrets.toml
+local_data/
+__pycache__/
+*.pyc
+.DS_Store
+# 含真實密碼、可直接貼到 Apps Script 的版本（只留在本機）
+apps_script/Code.txt
