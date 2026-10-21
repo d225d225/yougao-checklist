@@ -36,7 +36,29 @@ def get_store():
 
 
 store = get_store()
-API_KEY = secret("ANTHROPIC_API_KEY")
+
+
+def anthropic_key() -> str:
+    """讀取 AI 金鑰。
+
+    Streamlit Cloud 的 Secrets 編輯框會把 sk-ant- 開頭的金鑰顯示成「•」，
+    存檔時可能把圓點當成內容存進去，所以也接受 base64 編碼的 ANTHROPIC_API_KEY_B64。
+    """
+    import base64
+
+    key = secret("ANTHROPIC_API_KEY")
+    if key and "•" not in key:
+        return key
+    b64 = secret("ANTHROPIC_API_KEY_B64")
+    if b64:
+        try:
+            return base64.b64decode(b64).decode("ascii").strip()
+        except Exception:
+            pass
+    return key
+
+
+API_KEY = anthropic_key()
 
 
 def login_gate():
