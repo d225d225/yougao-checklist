@@ -165,7 +165,9 @@ def _call_json(api_key: str, model: str, effort: str, system: str, content: list
     except anthropic.AuthenticationError as e:
         import hashlib
         fp = hashlib.sha256(api_key.encode()).hexdigest()[:8]
-        hint = f"金鑰長度 {len(api_key)}，指紋 {fp}；服務回應：{e.message}"
+        parts = "-".join(hashlib.sha256(api_key[i:i + 12].encode()).hexdigest()[:3] for i in range(0, len(api_key), 12))
+        odd = [f"{i}:U+{ord(ch):04X}" for i, ch in enumerate(api_key) if not (ch.isascii() and (ch.isalnum() or ch in "-_"))]
+        hint = f"金鑰長度 {len(api_key)}，指紋 {fp}，分段 {parts}，異常字元 {odd or '無'}；服務回應：{e.message}"
         raise AIError(f"ANTHROPIC_API_KEY 無效，請檢查 secrets 設定（{hint}）") from e
     except anthropic.RateLimitError as e:
         raise AIError("AI 使用量暫時達到上限，請稍後再試") from e
