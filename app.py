@@ -26,7 +26,8 @@ def secret(key: str) -> str:
         v = st.secrets.get(key, "")
     except Exception:  # 沒有 secrets.toml 時
         v = ""
-    return str(v or os.environ.get(key, ""))
+    # 去掉貼上時可能夾帶的空白、換行與全形空白
+    return str(v or os.environ.get(key, "")).strip().strip("\u3000")
 
 
 @st.cache_resource

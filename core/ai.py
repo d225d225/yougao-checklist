@@ -163,7 +163,8 @@ def _call_json(api_key: str, model: str, effort: str, system: str, content: list
         ) as stream:
             msg = stream.get_final_message()
     except anthropic.AuthenticationError as e:
-        raise AIError("ANTHROPIC_API_KEY 無效，請檢查 secrets 設定") from e
+        hint = f"目前讀到的金鑰長度 {len(api_key)}，開頭 {api_key[:10]}…，結尾 …{api_key[-4:]}"
+        raise AIError(f"ANTHROPIC_API_KEY 無效，請檢查 secrets 設定（{hint}）") from e
     except anthropic.RateLimitError as e:
         raise AIError("AI 使用量暫時達到上限，請稍後再試") from e
     except anthropic.BadRequestError as e:
