@@ -6,6 +6,7 @@ import uuid
 
 DEFAULT_SUBPLANS = [
     "A-教", "A-學", "A-輔", "A-圖",
+    "B-教", "B-學", "B-輔", "B-圖",
     "C-圖", "C-秘", "D-圖",
     "E-教", "E-學", "E-圖",
 ]
