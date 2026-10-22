@@ -65,7 +65,7 @@ def login_gate():
     pw = secret("APP_PASSWORD")
     if not pw or st.session_state.get("auth"):
         return
-    st.markdown(style.hero("優高檢核表", "永平高中優質化計畫・子計畫自主管理檢核", "請登入"), unsafe_allow_html=True)
+    st.markdown(style.hero("優高檢核表", "永平高中優質化計畫・子計畫自主管理檢核"), unsafe_allow_html=True)
     with st.form("login"):
         typed = st.text_input("通關密碼", type="password")
         if st.form_submit_button("進入"):
