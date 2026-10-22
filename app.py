@@ -230,6 +230,7 @@ def df_rows(df: pd.DataFrame) -> list[dict]:
 
 
 STAR_OPTS = ["★" * n for n in range(1, 6)]
+MAX_ORIGINAL_BYTES = 3 * 1024 * 1024  # Apps Script 單次上傳上限約 3～5MB
 
 def draft_state() -> dict:
     return st.session_state.setdefault("draft", {})
@@ -353,32 +354,41 @@ with tab_add:
             dstart = st.session_state.d_date_start
             subdir = media.safe_name(f"{dstart.isoformat()}_{title}")
             bar = st.progress(0.0, text="上傳檔案到雲端…")
-            sources, photos = [], []
+            sources, photos, skipped = [], [], []
             try:
                 store.ensure_folder(subplan)
-                for i, up in enumerate(uploads):
-                    stem = media.safe_name(Path(up.name).stem, 70)
+            except StoreError as e:
+                st.error(f"連不上雲端資料夾：{e}")
+                st.stop()
+            for i, up in enumerate(uploads):
+                stem = media.safe_name(Path(up.name).stem, 70)
+                kind = st.session_state.get(f"d_kind_{i}", "其他")
+                use_photo = bool(st.session_state.get(f"d_use_{i}"))
+                meta, photo_id = None, None
+                try:
                     if up.kind == "image":
-                        meta = store.upload_file(subplan, subdir, stem + ".jpg", "image/jpeg", media.to_jpeg(up.data, 1200, 80))
+                        meta = store.upload_file(subplan, subdir, stem + ".jpg", "image/jpeg",
+                                                 media.to_jpeg(up.data, 1200, 80))
                         photo_id = meta["id"]
                     else:
-                        meta = store.upload_file(subplan, subdir, media.safe_name(up.name, 80),
-                                                 up.mime or "application/octet-stream", up.data)
-                        photo_id = None
-                        if up.kind == "pdf" and st.session_state.get(f"d_use_{i}"):
+                        # Apps Script 一次只能收約 3MB，太大的原始檔不備份到雲端
+                        if len(up.data) <= MAX_ORIGINAL_BYTES:
+                            meta = store.upload_file(subplan, subdir, media.safe_name(up.name, 80),
+                                                     up.mime or "application/octet-stream", up.data)
+                        else:
+                            skipped.append(f"{up.name}（{len(up.data) / 1048576:.1f}MB，超過 3MB 未備份原檔）")
+                        if up.kind == "pdf" and use_photo:
                             jpg = media.pdf_first_page_jpeg(up.data)
                             if jpg:
                                 photo_id = store.upload_file(subplan, subdir, stem + "_第一頁.jpg", "image/jpeg", jpg)["id"]
-                    sources.append({"name": up.name, "kind": st.session_state.get(f"d_kind_{i}", "其他"),
-                                    "file_id": meta["id"], "url": meta.get("url", "")})
-                    if photo_id:
-                        photos.append({"file_id": photo_id, "name": up.name,
-                                       "caption": st.session_state.get(f"d_cap_{i}", ""),
-                                       "include": bool(st.session_state.get(f"d_use_{i}"))})
-                    bar.progress((i + 1) / max(1, len(uploads)), text=f"已上傳 {i + 1}/{len(uploads)}")
-            except StoreError as e:
-                st.error(f"上傳失敗：{e}")
-                st.stop()
+                except StoreError as e:
+                    skipped.append(f"{up.name}（上傳失敗：{str(e)[:60]}）")
+                sources.append({"name": up.name, "kind": kind,
+                                "file_id": meta["id"] if meta else "", "url": meta.get("url", "") if meta else ""})
+                if photo_id:
+                    photos.append({"file_id": photo_id, "name": up.name,
+                                   "caption": st.session_state.get(f"d_cap_{i}", ""), "include": use_photo})
+                bar.progress((i + 1) / max(1, len(uploads)), text=f"已上傳 {i + 1}/{len(uploads)}")
             refl = [ln.split("：", 1) for ln in st.session_state.d_reflections.splitlines() if ln.strip()]
             data["activities"].append({
                 "id": model.new_id(),
@@ -404,7 +414,8 @@ with tab_add:
             bar.progress(1.0, text="寫入檢核表…")
             if save_data(data):
                 reset_draft()
-                st.session_state.flash = "已寫入！檢核表已更新。"
+                st.session_state.flash = "已寫入！檢核表已更新。" + (
+                    "\n\n下列檔案沒有備份到雲端「原始資料」：\n" + "\n".join(f"- {x}" for x in skipped) if skipped else "")
                 st.rerun()
 
     if st.session_state.get("flash"):

@@ -35,7 +35,8 @@ class GasStore:
             body = r.json()
         except ValueError as e:
             raise StoreError(
-                "Apps Script 回傳的不是 JSON。請確認部署的存取權是「任何人」，且網址是 /exec 結尾。"
+                f"Apps Script 回傳的不是 JSON（HTTP {r.status_code}）。"
+                "常見原因：檔案太大（超過約 3MB），或部署的存取權不是「任何人」。"
             ) from e
         if not body.get("ok"):
             raise StoreError(f"Apps Script 錯誤：{body.get('error')}")
