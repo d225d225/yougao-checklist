@@ -31,6 +31,7 @@ const ROW = {
   qual: 23, review: 25, highlight: 26, problem: 27, plc: 28,
   photoFirst: 29, photoPairs: 16, overall: 61,
 };
+const BLACK = '#000000'; // 文件內所有文字一律黑色
 const PHOTO_MAX_W = 190; // pt，約為半欄寬
 const PHOTO_MAX_H = 150;
 
@@ -271,11 +272,18 @@ function setCell_(cell, text) {
   }
   while (cell.getNumChildren() > 1) cell.getChild(cell.getNumChildren() - 1).removeFromParent();
   const para = first.asParagraph();
+  const t0 = para.editAsText();
+  const hasText = t0.getText().length > 0;
+  const size = hasText ? t0.getFontSize(0) : null;
+  const family = hasText ? t0.getFontFamily(0) : null;
   para.setText(lines[0] || ' ');
-  if (lines[0]) para.editAsText().setBold(false);
-  for (let i = 1; i < lines.length; i++) {
-    const p = cell.appendParagraph(lines[i] || ' ');
-    if (lines[i]) p.editAsText().setBold(false);
+  for (let i = 1; i < lines.length; i++) cell.appendParagraph(lines[i] || ' ');
+  // 整格統一：黑色、不粗體、同字級同字型
+  for (let i = 0; i < cell.getNumChildren(); i++) {
+    const t = cell.getChild(i).editAsText();
+    t.setForegroundColor(BLACK).setBold(false);
+    if (size) t.setFontSize(size);
+    if (family) t.setFontFamily(family);
   }
 }
 
@@ -314,7 +322,7 @@ function fill_(doc, d) {
   const paras = body.getParagraphs();
   for (let i = 0; i < paras.length; i++) {
     if (paras[i].getText().indexOf('執行月份') === 0) {
-      paras[i].setText('執行月份：' + s.months + '　　　　　　　　　　填表日期：' + s.fillDate);
+      paras[i].setText('執行月份：' + s.months + '　　　　　填表日期：' + s.fillDate);
       break;
     }
   }
@@ -378,6 +386,9 @@ function fill_(doc, d) {
   // 總體評估
   if (s.overall) tick_(cellAt_(t, ROW.overall, 1, GRID_STARTS.wide), s.overall);
 
+  // 全部文字改黑色（模板的提示字原本是紅色、灰色）
+  blackenAll_(body);
+
   // 續表（超過模板容量時，接在主表格後面）
   const extraActs = acts.slice(cap);
   const extraPhotos = photos.slice(slots);
@@ -402,6 +413,19 @@ function fill_(doc, d) {
     for (let i = 0; i < extraPhotos.length; i++) {
       const cell = pt.getRow(Math.floor(i / 2) * 2).getCell(i % 2);
       try { putImage_(cell, extraPhotos[i].fileId); } catch (e) { setCell_(cell, '（圖片讀取失敗）'); }
+    }
+  }
+}
+
+/** 把整份文件（段落、表格、巢狀表格）的文字都設成黑色。 */
+function blackenAll_(body) {
+  for (let i = 0; i < body.getNumChildren(); i++) {
+    const el = body.getChild(i);
+    const type = el.getType();
+    if (type === DocumentApp.ElementType.PARAGRAPH || type === DocumentApp.ElementType.LIST_ITEM ||
+        type === DocumentApp.ElementType.TABLE) {
+      const t = el.editAsText();
+      if (t.getText().length) t.setForegroundColor(BLACK);
     }
   }
 }
