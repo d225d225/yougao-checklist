@@ -6,6 +6,7 @@ DEEP_MAPLE = "#7A1F16"
 AMBER = "#C8892B"
 LEAF_BROWN = "#8C6A4F"
 INK = "#3B2A20"
+TEXT = "#000000"  # 所有文字一律黑色（使用者要求）
 
 
 def maple_svg(size: int = 28, color: str = MAPLE, rotate: int = 0, opacity: float = 1.0) -> str:
@@ -25,8 +26,8 @@ CSS = f"""
 html, body, [class*="css"], .stApp, .stMarkdown, input, textarea, button, select {{
   font-family: 'Noto Sans TC', sans-serif !important;
 }}
-.stApp {{ background: {PARCHMENT}; color: {INK}; }}
-h1, h2, h3, h4, .serif {{ font-family: 'Noto Serif TC', serif !important; color: {DEEP_MAPLE}; letter-spacing: .02em; }}
+.stApp {{ background: {PARCHMENT}; color: {TEXT}; }}
+h1, h2, h3, h4, .serif {{ font-family: 'Noto Serif TC', serif !important; color: {TEXT}; letter-spacing: .02em; }}
 [data-testid="stSidebar"] {{ background: #EFE5CF; border-right: 1px solid {LEAF_BROWN}33; }}
 .block-container {{ padding-top: 1.6rem; max-width: 1180px; }}
 
@@ -35,7 +36,7 @@ h1, h2, h3, h4, .serif {{ font-family: 'Noto Serif TC', serif !important; color:
   background: linear-gradient(135deg, #FBF6EA 0%, #F3E6CC 100%);
   border: 1px solid {LEAF_BROWN}55; border-radius: 12px; }}
 .hero h1 {{ margin: 0; font-size: 1.75rem; font-weight: 900; display: flex; align-items: center; gap: 10px; }}
-.hero .sub {{ color: {LEAF_BROWN}; margin-top: 4px; font-size: .95rem; }}
+.hero .sub {{ color: {TEXT}; margin-top: 4px; font-size: .95rem; }}
 .hero .chip {{ display: inline-block; margin-top: 10px; padding: 3px 12px; border-radius: 999px;
   background: {MAPLE}; color: #fff; font-size: .85rem; font-weight: 500; }}
 .hero .leaves {{ position: absolute; right: 18px; top: 8px; pointer-events: none; }}
@@ -44,27 +45,27 @@ h1, h2, h3, h4, .serif {{ font-family: 'Noto Serif TC', serif !important; color:
 /* 子計畫選擇列 */
 .st-key-picker {{ background: #FFFBF2; border: 1px solid {LEAF_BROWN}55; border-radius: 10px;
   padding: 12px 16px 4px; margin-bottom: 8px; }}
-.st-key-picker [data-testid="stWidgetLabel"] p {{ font-family: 'Noto Serif TC', serif; color: {DEEP_MAPLE}; font-weight: 700; }}
-.st-key-picker button[kind^="segmented_control"] {{ border-color: {LEAF_BROWN}66; color: {INK}; min-width: 64px; }}
+.st-key-picker [data-testid="stWidgetLabel"] p {{ font-family: 'Noto Serif TC', serif; color: {TEXT}; font-weight: 700; }}
+.st-key-picker button[kind^="segmented_control"] {{ border-color: {LEAF_BROWN}66; color: {TEXT}; min-width: 64px; }}
 .st-key-picker button[kind="segmented_controlActive"] {{ background: {MAPLE} !important; border-color: {MAPLE} !important; color: #fff !important; }}
 
 /* 卡片與數字 */
 .card {{ background: #FFFBF2; border: 1px solid {LEAF_BROWN}55; border-radius: 10px;
   padding: 14px 18px; box-shadow: 0 1px 3px rgba(59,42,32,.08); margin-bottom: 12px; }}
 .stat {{ text-align: center; }}
-.stat .n {{ font-family: 'Noto Serif TC', serif; font-size: 2rem; font-weight: 900; color: {MAPLE}; line-height: 1.1; }}
-.stat .l {{ color: {LEAF_BROWN}; font-size: .85rem; }}
+.stat .n {{ font-family: 'Noto Serif TC', serif; font-size: 2rem; font-weight: 900; color: {TEXT}; line-height: 1.1; }}
+.stat .l {{ color: {TEXT}; font-size: .85rem; }}
 
 /* 步驟列 */
 .steps {{ display: flex; gap: 6px; margin: 4px 0 16px; flex-wrap: wrap; }}
 .steps div {{ flex: 1; min-width: 120px; text-align: center; padding: 8px 6px; border-radius: 8px;
-  background: #EFE5CF; color: {LEAF_BROWN}; font-size: .9rem; border: 1px solid transparent; }}
+  background: #EFE5CF; color: {TEXT}; font-size: .9rem; border: 1px solid transparent; }}
 .steps div.on {{ background: {MAPLE}; color: #fff; font-weight: 700; }}
-.steps div.done {{ background: #fff; color: {MAPLE}; border-color: {MAPLE}66; }}
+.steps div.done {{ background: #fff; color: {TEXT}; border-color: {MAPLE}66; }}
 
 /* 按鈕 */
 .stButton > button, .stDownloadButton > button, .stLinkButton > a {{
-  border-radius: 8px !important; border: 1px solid {MAPLE} !important; color: {MAPLE} !important;
+  border-radius: 8px !important; border: 1px solid {MAPLE} !important; color: {TEXT} !important;
   background: #FFFBF2 !important; }}
 .stButton > button[kind="primary"], .stFormSubmitButton > button {{
   background: {MAPLE} !important; color: #fff !important; }}
@@ -72,20 +73,30 @@ h1, h2, h3, h4, .serif {{ font-family: 'Noto Serif TC', serif !important; color:
 
 /* 分頁 */
 .stTabs [data-baseweb="tab-list"] {{ gap: 4px; border-bottom: 1px solid {LEAF_BROWN}44; flex-wrap: wrap; }}
-.stTabs [data-baseweb="tab"] {{ font-family: 'Noto Serif TC', serif; color: {LEAF_BROWN}; }}
-.stTabs [aria-selected="true"] {{ color: {MAPLE} !important; }}
+.stTabs [data-baseweb="tab"] {{ font-family: 'Noto Serif TC', serif; color: {TEXT}; }}
+.stTabs [aria-selected="true"] {{ color: {TEXT} !important; font-weight: 700; }}
 .stTabs [data-baseweb="tab-highlight"] {{ background: {MAPLE}; }}
 .stProgress > div > div > div > div {{ background: {AMBER}; }}
 
 /* 預覽 */
 .pv {{ background: #fff; border: 1px solid {LEAF_BROWN}55; border-radius: 10px; padding: 18px; }}
 .pv-title {{ text-align: center; font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 1.1rem; }}
-.pv-meta {{ text-align: center; color: {LEAF_BROWN}; margin: 6px 0 10px; }}
+.pv-meta {{ text-align: center; color: {TEXT}; margin: 6px 0 10px; }}
 .pv table {{ width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: .9rem; }}
 .pv th, .pv td {{ border: 1px solid #9C8775; padding: 6px 8px; vertical-align: top; }}
 .pv th {{ background: #F3E9D6; white-space: nowrap; width: 1%; }}
-.pv .star {{ color: {MAPLE}; white-space: nowrap; }}
-.pv .muted, .muted {{ color: {LEAF_BROWN}; }}
+.pv .star {{ color: {TEXT}; white-space: nowrap; }}
+.pv .muted, .muted {{ color: {TEXT}; }}
+
+/* 其他文字：說明小字、欄位標題、提示框、側欄文字也都改黑色 */
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] *,
+[data-testid="stWidgetLabel"], [data-testid="stWidgetLabel"] *,
+[data-testid="stMarkdownContainer"], [data-testid="stMarkdownContainer"] p,
+[data-testid="stAlert"] *, [data-testid="stExpander"] summary *,
+[data-testid="stSidebar"] *, .stTextArea textarea, .stTextInput input {{ color: {TEXT} !important; }}
+/* 紅底按鈕維持白字，才看得清楚 */
+.stButton > button[kind="primary"] *, .stFormSubmitButton > button *,
+button[kind="segmented_controlActive"] *, .steps div.on {{ color: #fff !important; }}
 
 @media (max-width: 640px) {{
   .hero h1 {{ font-size: 1.3rem; }}
