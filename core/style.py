@@ -94,6 +94,12 @@ h1, h2, h3, h4, .serif {{ font-family: 'Noto Serif TC', serif !important; color:
 [data-testid="stMarkdownContainer"], [data-testid="stMarkdownContainer"] p,
 [data-testid="stAlert"] *, [data-testid="stExpander"] summary *,
 [data-testid="stSidebar"] *, .stTextArea textarea, .stTextInput input {{ color: {TEXT} !important; }}
+/* 輸入框提示字、上傳框說明、勾選框與下拉選單文字也用黑色 */
+input::placeholder, textarea::placeholder {{ color: {TEXT} !important; opacity: 1 !important; }}
+[data-testid="stFileUploaderDropzoneInstructions"] *, [data-testid="stFileUploaderFile"] *,
+[data-testid="stCheckbox"] *, [data-baseweb="select"] *, [data-testid="stToggle"] *,
+[data-testid="stMetric"] *, [data-testid="stTooltipIcon"] *, small {{ color: {TEXT} !important; }}
+
 /* 紅底按鈕維持白字，才看得清楚 */
 .stButton > button[kind="primary"] *, .stFormSubmitButton > button *,
 button[kind="segmented_controlActive"] *, .steps div.on {{ color: #fff !important; }}
