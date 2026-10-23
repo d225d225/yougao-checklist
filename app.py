@@ -128,6 +128,31 @@ def save_data(data: dict, rebuild: bool = True) -> bool:
     return ok
 
 
+AUTO_FIELDS = ["review", "revise", "highlights", "problems"]  # 每次都由 AI 重寫
+FILL_IF_EMPTY = ["budget_text", "overall"]                   # 空白時才補上
+
+
+def auto_update_summary(data: dict) -> str | None:
+    """依目前所有活動，讓 AI 更新檢討與修正、執行亮點、問題或執行困難。回傳警告訊息或 None。"""
+    if not data["activities"] or not API_KEY or not data["settings"].get("auto_summary", True):
+        return None
+    try:
+        with st.spinner("AI 正在更新「檢討與修正、執行亮點、問題或執行困難」…（約 30～60 秒）"):
+            out = ai.draft_summary(API_KEY, data, fast=True)
+    except ai.AIError as e:
+        return f"檢討與修正、亮點等欄位沒有自動更新：{e}"
+    summ = data["summary"]
+    for f in AUTO_FIELDS:
+        summ[f] = out.get(f, summ.get(f, ""))
+    for f in FILL_IF_EMPTY:
+        if not summ.get(f):
+            summ[f] = out.get(f, "")
+    # 讓「年度彙整」頁重新讀取最新內容
+    for k in [k for k in st.session_state.keys() if k.startswith(f"{data['subplan']}|{data['year']}:sum:")]:
+        del st.session_state[k]
+    return None
+
+
 def example_block() -> dict | None:
     """從 reference 資料夾取一份 PDF 範例，給 AI 參考寫作風格。"""
     if "example_block" in st.session_state:
@@ -210,6 +235,9 @@ with tab_home:
     st.markdown("#### 雲端檢核表")
     doc_links(data.get("doc"))
     if store.remote and acts and st.button("重新產生 Google 文件"):
+        warn = auto_update_summary(data)
+        if warn:
+            st.warning(warn)
         if save_data(data):
             st.success("已更新 Google 文件")
             st.rerun()
@@ -411,11 +439,13 @@ with tab_add:
                 data["plc"]["meetings"] + df_rows(meet_df), key=lambda m: m.get("when", ""))
             known = {m.get("name") for m in data["plc"]["members"]}
             data["plc"]["members"] += [t for t in df_rows(teacher_df) if t.get("name") and t["name"] not in known]
+            warn = auto_update_summary(data)
             bar.progress(1.0, text="寫入檢核表…")
             if save_data(data):
                 reset_draft()
                 st.session_state.flash = "已寫入！檢核表已更新。" + (
-                    "\n\n下列檔案沒有備份到雲端「原始資料」：\n" + "\n".join(f"- {x}" for x in skipped) if skipped else "")
+                    "\n\n下列檔案沒有備份到雲端「原始資料」：\n" + "\n".join(f"- {x}" for x in skipped) if skipped else "") + (
+                    f"\n\n{warn}" if warn else "")
                 st.rerun()
 
     if st.session_state.get("flash"):
@@ -525,7 +555,11 @@ SUM_FIELDS = [
 
 with tab_sum:
     summ = data["summary"]
-    st.caption("按下按鈕，AI 會依本學年度所有活動草擬下列欄位；你修改後按「儲存彙整」才會寫入。")
+    auto_on = st.toggle(
+        "新增活動時，讓 AI 自動更新「檢討與修正、執行亮點、問題或執行困難」",
+        value=data["settings"].get("auto_summary", True), key=f"{DK}:auto_summary",
+        help="開啟：每次新增活動，AI 會依全部活動重寫這幾欄。若你手動修改過、想保留內容，請關閉後按「儲存彙整」。")
+    st.caption("也可以按下面的按鈕，讓 AI 依本學年度所有活動草擬全部欄位；修改後按「儲存彙整」才會寫入。")
     use_ex = st.checkbox("附上去年範例給 AI 參考", value=bool(store.remote), key="sum_example")
     if st.button("AI 依目前所有活動草擬", disabled=not data["activities"]):
         require_api_key()
@@ -556,6 +590,7 @@ with tab_sum:
     if st.button("儲存彙整", type="primary"):
         data["summary"].update(vals)
         data["summary"]["overall"] = overall
+        data["settings"]["auto_summary"] = auto_on
         if save_data(data):
             st.success("已儲存並更新檢核表")
 

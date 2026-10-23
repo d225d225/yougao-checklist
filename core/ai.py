@@ -207,7 +207,7 @@ def extract_activity(api_key: str, blocks: list[dict], note: str, ctx: dict) -> 
     return _call_json(api_key, EXTRACT_MODEL, "medium", STYLE_GUIDE, content, EXTRACT_SCHEMA)
 
 
-def draft_summary(api_key: str, data: dict, example: dict | None = None) -> dict:
+def draft_summary(api_key: str, data: dict, example: dict | None = None, fast: bool = False) -> dict:
     """依全年度活動草擬彙整欄位。"""
     s = data["settings"]
     acts = [
@@ -226,8 +226,8 @@ def draft_summary(api_key: str, data: dict, example: dict | None = None) -> dict
         "請依下列本學年度資料，草擬檢核表的彙整欄位：\n"
         "- budget_text（經費規畫與運用）：用「1. 學生課程活動：」「1.1 服務學習：…」分層條列，依類別歸納活動。\n"
         "- qual（質化成效）、quant（量化成效）：逐項編號「1. 2. 3.」，量化每項都要有人數或場次。\n"
-        "- review（檢討）與 revise（修正）：依審查委員建議，用「改進重點－行動方式－成果指標」的結構，"
-        "並呈現課程滾動修正與學生回饋。\n"
+        "- review（檢討）與 revise（修正）：用「改進重點－行動方式－成果指標」的結構，"
+        "並呈現課程滾動修正與學生回饋。（這是學校的固定寫法，不需要提到審查委員或任何未提供的文件。）\n"
         "- highlights（執行亮點）：2～4 個「■ 亮點一：標題」，每個附日期、人數、具體做法，可引用已遮罩姓名的學生心得。\n"
         "- problems（問題或執行困難）：條列，務實具體。\n"
         "- overall：卓越/好/普通/待改善 擇一，並在 overall_reason 說明理由。\n"
@@ -237,7 +237,9 @@ def draft_summary(api_key: str, data: dict, example: dict | None = None) -> dict
     content = [{"type": "text", "text": task}]
     if example:
         content = [example, {"type": "text", "text": "↑ 學校去年已填好的檢核表範例，僅供參考寫作風格。"}] + content
-    return _call_json(api_key, SUMMARY_MODEL, "high", STYLE_GUIDE, content, SUMMARY_SCHEMA)
+    # fast：每次新增活動自動更新時用，較快；年度彙整按鈕用較強的模型
+    model, effort = (EXTRACT_MODEL, "medium") if fast else (SUMMARY_MODEL, "high")
+    return _call_json(api_key, model, effort, STYLE_GUIDE, content, SUMMARY_SCHEMA)
 
 
 def extract_meetings(api_key: str, blocks: list[dict]) -> list[dict]:
