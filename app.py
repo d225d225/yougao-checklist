@@ -86,6 +86,9 @@ def load_config() -> dict:
         except StoreError as e:
             st.error(str(e))
             cfg = {}
+        if cfg.get("subplans_version", 0) < model.SUBPLANS_VERSION:  # 改用 115–117 計畫書代碼
+            cfg["subplans"] = list(model.DEFAULT_SUBPLANS)
+            cfg["subplans_version"] = model.SUBPLANS_VERSION
         cfg.setdefault("subplans", list(model.DEFAULT_SUBPLANS))
         st.session_state.config = cfg
     return st.session_state.config
@@ -105,7 +108,14 @@ def load_data(subplan: str, year: int, force: bool = False) -> dict:
             except StoreError as e:
                 st.error(str(e))
                 st.stop()
-        cache[key] = d or model.new_data(subplan, year)
+        d = d or model.new_data(subplan, year)
+        st_ = d["settings"]
+        if not st_.get("plan_version"):  # 舊資料：分支計畫換成 115–117 計畫書版本，帶入經費概算
+            st_["branches"] = model.default_branches(subplan)
+            if not st_.get("recurring"):
+                st_["recurring"] = model.plan.budget_total_yuan(subplan)
+            st_["plan_version"] = 2
+        cache[key] = d
     return cache[key]
 
 
@@ -624,6 +634,7 @@ with tab_set:
     if st.button("儲存子計畫清單"):
         codes = [x.strip() for x in sp.splitlines() if x.strip() and x.strip() != "reference"]
         cfg["subplans"] = codes
+        cfg["subplans_version"] = model.SUBPLANS_VERSION
         try:
             store.write_json(None, CONFIG_NAME, cfg)
             st.success("已儲存")

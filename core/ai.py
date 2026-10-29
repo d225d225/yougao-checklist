@@ -5,6 +5,8 @@ import json
 
 import anthropic
 
+from core import plan
+
 EXTRACT_MODEL = "claude-sonnet-5-5"
 SUMMARY_MODEL = "claude-opus-5-5"
 
@@ -23,6 +25,9 @@ STYLE_GUIDE = """\
   身分證字號、電話、地址等個資一律不寫。
 - 只能根據提供的檔案與說明撰寫。看不出來的資訊（日期、人數、名次等）不可推測或編造，
   該欄留空字串，並把欄位名稱列在 missing 中。
+- 檢核表要扣合計畫精神：對應的分支計畫、計畫書的規劃項目與目標值、學生圖像（品格力、閱讀力、
+  表達力、創造力、鑑賞力），以及子計畫的政策重點（AI 與數位、SEL、SDGs、NPDL 6Cs、雙語、美感等）。
+  只寫活動實際呈現的連結，不要硬套；量化成效可對照目標值寫出達成情形（例：講座第 3 場／目標 12 場）。
 - 例外：PLC 社群「運作模式」。有成果代表教師事前一定有討論、備課，請依活動內容與日期，
   推估活動前的教師社群備課紀錄（發想、分工、共備、試作修正、彩排等），作為草稿讓組長修改。
 """
@@ -193,11 +198,12 @@ def extract_activity(api_key: str, blocks: list[dict], note: str, ctx: dict) -> 
     """讀取一個活動的所有檔案，產生檢核表的一列。"""
     branches = "\n".join(f"- {b}" for b in ctx["branches"]) or "（無）"
     intro = (
+        f"{plan.context_for(ctx['subplan'])}\n\n"
         f"子計畫：{ctx['subplan']}；{ctx['year']}學年度"
         f"（計畫期程為 {ctx['year'] + 1911} 年 8 月～{ctx['year'] + 1912} 年 7 月）。\n"
         f"可選的分支計畫：\n{branches}\n\n"
         f"組長補充說明：{note or '（無）'}\n\n"
-        "請讀取以下所有檔案，整理成檢核表的一筆「執行重點」。"
+        "請讀取以下所有檔案，整理成檢核表的一筆「執行重點」，內容須扣合上述計畫精神。"
         "files 陣列要涵蓋每一個檔案編號；照片挑 2～4 張最能呈現活動的設 use_photo=true，獎狀也設 use_photo=true 並寫說明。"
         "另外請列出指導老師（teachers），並推估活動前的教師社群備課紀錄（plc_meetings）。"
     )
@@ -223,8 +229,11 @@ def draft_summary(api_key: str, data: dict, example: dict | None = None, fast: b
         "PLC社群會議": data["plc"]["meetings"],
     }
     task = (
+        plan.context_for(data["subplan"]) + "\n\n"
         "請依下列本學年度資料，草擬檢核表的彙整欄位：\n"
-        "- budget_text（經費規畫與運用）：用「1. 學生課程活動：」「1.1 服務學習：…」分層條列，依類別歸納活動。\n"
+        "- budget_text（經費規畫與運用）：用「1. 學生課程活動：」「1.1 服務學習：…」分層條列，依類別歸納活動，並對照上方經費概算項目說明運用情形。\n"
+        "- 所有欄位都要扣合計畫精神：對照分支計畫的規劃項目與目標值說明達成進度，連結學生圖像與政策重點（AI、SEL、SDGs、NPDL 等），"
+        "並落實 PDCA 自主管理與經費執行率 9 成的要求。\n"
         "- qual（質化成效）、quant（量化成效）：逐項編號「1. 2. 3.」，量化每項都要有人數或場次。\n"
         "- review（檢討）與 revise（修正）：用「改進重點－行動方式－成果指標」的結構，"
         "並呈現課程滾動修正與學生回饋。（這是學校的固定寫法，不需要提到審查委員或任何未提供的文件。）\n"
