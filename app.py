@@ -611,8 +611,9 @@ with tab_set:
     s = data["settings"]
     st.markdown(f"##### {subplan}　{year}學年度設定")
     with st.form(f"{DK}:settings"):
-        cat = st.radio("類別", model.CATEGORIES, horizontal=True,
-                       index=model.CATEGORIES.index(s["category"]) if s.get("category") in model.CATEGORIES else 1)
+        cats = model.categories(subplan)
+        cat = st.radio("類別", cats, horizontal=True,
+                       index=cats.index(s["category"]) if s.get("category") in cats else None)
         c1, c2 = st.columns(2)
         capital = c1.number_input("資本門預算（元）", min_value=0, value=int(s.get("capital") or 0), step=1000)
         cap_spent = c2.number_input("資本門已支用（元）", min_value=0, value=int(s.get("capital_spent") or 0), step=100)
@@ -621,7 +622,7 @@ with tab_set:
         months = st.text_input("執行月份（留空＝自動，例：8～11月）", s.get("months_override", ""))
         branches = st.text_area("分支計畫清單（一行一個，AI 會從中挑選）", "\n".join(s.get("branches") or []), height=180)
         if st.form_submit_button("儲存設定"):
-            s.update({"category": cat, "capital": capital, "capital_spent": cap_spent,
+            s.update({"category": cat or "", "capital": capital, "capital_spent": cap_spent,
                       "recurring": recurring, "recurring_spent": rec_spent,
                       "months_override": months.strip(),
                       "branches": [b.strip() for b in branches.splitlines() if b.strip()]})

@@ -332,7 +332,8 @@ function fill_(doc, d) {
   if (errs.length) throw new Error('模板結構與預期不符：' + errs.join('；'));
 
   // 類別、子計畫名稱
-  if (s.category) tick_(cellAt_(t, ROW.category, 1, GRID_STARTS.r0), s.category);
+  if (s.categoryLine) setCell_(cellAt_(t, ROW.category, 1, GRID_STARTS.r0), s.categoryLine);
+  else if (s.category) tick_(cellAt_(t, ROW.category, 1, GRID_STARTS.r0), s.category);
   setCell_(cellAt_(t, ROW.category, 3, GRID_STARTS.r0), d.subplan);
 
   // 經費、執行率

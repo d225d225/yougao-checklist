@@ -58,6 +58,9 @@ def build_sheet(data: dict) -> dict:
         "months": months_text(data),
         "fillDate": model.roc_date(),
         "category": s.get("category", ""),
+        # 模板的類別欄是舊版選項，整格改寫成本子計畫的類別
+        "categoryLine": "　".join(("■" if c == s.get("category") else "□") + c
+                                 for c in model.categories(data["subplan"])),
         "capital": _money(capital),
         "recurring": _money(recurring),
         "total": _money(float(capital) + float(recurring)),
@@ -95,7 +98,7 @@ def preview_html(data: dict) -> str:
     """網頁上的檢核表預覽（簡化版，正式版以 Google 文件為準）。"""
     sh = build_sheet(data)
     e = lambda x: html.escape(str(x or "")).replace("\n", "<br>")  # noqa: E731
-    cats = " ".join(("■" if c == sh["category"] else "□") + c for c in model.CATEGORIES)
+    cats = " ".join(("■" if c == sh["category"] else "□") + c for c in model.categories(data["subplan"]))
     overall = " ".join(("■" if o == sh["overall"] else "□") + o for o in model.OVERALL)
     rows = "".join(
         f"<tr><td>{e(a['date'])}</td><td>{e(a['title'])}</td><td>{e(a['summary'])}</td>"

@@ -7,9 +7,8 @@ import uuid
 from core import plan
 
 DEFAULT_SUBPLANS = list(plan.SUBPLANS)
-SUBPLANS_VERSION = 2  # 115 學年度起改用 115–117 計畫書的子計畫代碼
+SUBPLANS_VERSION = 3  # 115 學年度起改用 115–117 計畫書的子計畫代碼
 
-CATEGORIES = ["教師教學", "學生學習", "教師專業發展", "課程發展", "其他"]
 OVERALL = ["卓越", "好", "普通", "待改善"]
 FILE_KINDS = ["照片", "公文", "獎狀", "課表", "簽到表", "心得", "其他"]
 
@@ -45,6 +44,10 @@ def now_iso() -> str:
     return dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
 
 
+def categories(subplan: str) -> list[str]:
+    return list(plan.CATEGORIES.get(subplan[:1], []))
+
+
 def default_branches(subplan: str) -> list[str]:
     return list(DEFAULT_BRANCHES.get(subplan[:1], []))
 
@@ -55,7 +58,7 @@ def new_data(subplan: str, year: int) -> dict:
         "subplan": subplan,
         "year": year,
         "settings": {
-            "category": "學生學習" if "學" in subplan else "",
+            "category": "",
             "capital": 0,
             "capital_spent": 0,
             "recurring": plan.budget_total_yuan(subplan),

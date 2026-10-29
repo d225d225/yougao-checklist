@@ -10,9 +10,16 @@ AI 撰寫檢核表時會帶入這裡的內容，讓檢核表扣合計畫精神�
 
 SUBPLANS = [
     "A-教-1", "A-教-2", "A-學", "A-輔", "A-圖",
-    "C-教-1", "C-學-1", "C-學-2", "C-圖-1", "C-圖-2",
     "B-學", "B-輔", "B-圖-1", "B-圖-2",
+    "C-教-1", "C-學-1", "C-學-2", "C-圖-1", "C-圖-2",
 ]
+
+# 檢核表「類別」欄，依子計畫字母（經費概算表的類別）
+CATEGORIES = {
+    "A": ["課程", "社群"],
+    "B": ["計畫核心", "自主", "課發", "課諮", "學習歷程", "科技教學", "SEL"],
+    "C": ["新興科技", "NPDL", "SDGs"],
+}
 
 SCHOOL = """\
 【學校願景與共通精神】
@@ -129,6 +136,7 @@ def context_for(subplan: str) -> str:
     letter = subplan[:1]
     return (
         f"{SCHOOL}\n{PLAN.get(letter, '')}\n"
+        f"【{subplan} 類別選項】{'、'.join(CATEGORIES.get(letter, []))}\n"
         f"【{subplan} 經費概算】{budget_text(subplan)}\n"
         "（本學期經費執行期間為 8/1～12/31，須於期限內執行並核銷，執行率目標 9 成。）"
     )
